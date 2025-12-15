@@ -1,3 +1,6 @@
+# TODO check if logic works when a player disconnects mid game
+# TODO their old score should remain on the table but otherwise they drop out of logic
+
 # create and manage quizzes
 class Quiz:
     def __init__(self):
@@ -9,6 +12,7 @@ class Quiz:
         self.question_index = 0
         self.started = False
         self.player_answered = {} # player : true/false
+        self.player_status = {} # player : correct/first/wrong
         self.first_taken = False # someone answered first and took all points
 
     def add_player(self, player_name):
@@ -35,6 +39,7 @@ class Quiz:
         for p in self.players:
             self.scoreboard[p] = 0
             self.player_answered[p] = False
+            self.player_status[p] = '0'
     
     def next_question(self):
         self.question_index += 1
@@ -44,6 +49,7 @@ class Quiz:
         self.first_taken = False
         for p in self.players:
             self.player_answered[p] = False
+            self.player_status[p] = '0'
         return 0
     
     def give_answer(self, player_name, answer): # answer is capital letter
@@ -55,8 +61,12 @@ class Quiz:
             if not self.first_taken: # bonus points, total equal to player count
                 self.first_taken = True
                 self.scoreboard[player_name] += len(self.players)
+                self.player_status[p] = 'F' # first
             else:
                 self.scoreboard[player_name] += 1
+                self.player_status[p] = 'C' # correct
+        else:
+            self.player_status[p] = 'W' # wrong
 
         if self.player_answered.count(True) == len(self.players): # all players answered
             return 1

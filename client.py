@@ -1,8 +1,75 @@
 from tkinter import *
 from tkinter import ttk
+
 root = Tk()
-frm = ttk.Frame(root, padding=10)
-frm.grid()
-ttk.Label(frm, text="Hello World!").grid(column=0, row=0)
-ttk.Button(frm, text="Quit", command=root.destroy).grid(column=1, row=0)
+
+frame = ttk.Frame(root, padding=10)
+frame.grid(sticky="NSEW")
+
+# configure root
+root.rowconfigure(0, weight=1)
+root.columnconfigure(0, weight=1)
+
+# configure main frame
+frame.rowconfigure(0, weight=1)
+frame.rowconfigure(1, weight=1)
+frame.rowconfigure(2, weight=1)
+frame.rowconfigure(3, weight=1)
+frame.rowconfigure(4, weight=1)
+frame.rowconfigure(5, weight=1)
+frame.rowconfigure(6, weight=2)
+
+frame.columnconfigure(0, weight=8)
+frame.columnconfigure(1, weight=4)
+frame.columnconfigure(2, weight=1)
+
+# the console/monitor that stuff is printed to
+main_console = Listbox(frame)
+main_console.grid(column=0, row=0, rowspan=7, sticky="NSEW")
+
+# labels (text)
+ip_label = ttk.Label(frame, text="IP Address:", anchor=W)
+ip_label.grid(column=1, row=0, sticky="EW", padx=(6, 6))
+
+port_label = ttk.Label(frame, text="Port:", anchor=W)
+port_label.grid(column=1, row=2, sticky="W", padx=(6, 0))
+
+answer_label = ttk.Label(frame, text="Answer:", anchor=W)
+answer_label.grid(column=1, row=4, sticky="W", padx=(6, 0))
+
+# entry boxes
+ip_entry = ttk.Entry(frame)
+ip_entry.grid(column=1, row=1, columnspan=2, sticky="NEW", padx=(6, 0))
+
+port_entry = ttk.Entry(frame)
+port_entry.grid(column=1, row=3, sticky="NEW", padx=(6, 0))
+
+# child frame to put the radio buttons into
+radio_frame = ttk.Frame(frame) 
+radio_frame.grid(column=1, row=5, columnspan=2, sticky="NEW", padx=(6, 0)) 
+
+# configure child frame
+radio_frame.columnconfigure(0, weight=1)
+radio_frame.columnconfigure(1, weight=1)
+radio_frame.columnconfigure(2, weight=1)
+
+# radio buttons for choices
+a_button = ttk.Radiobutton(radio_frame, text="A")
+a_button.grid(column=0, row=0, sticky="NEW", pady=(6, 0))
+
+b_button = ttk.Radiobutton(radio_frame, text="B")
+b_button.grid(column=1, row=0, sticky="NEW", pady=(6, 0))
+
+c_button = ttk.Radiobutton(radio_frame, text="C")
+c_button.grid(column=2, row=0, sticky="NEW", pady=(6, 0))
+
+# connect button
+connect_button = ttk.Button(frame, text="Connect")
+connect_button.grid(column=2, row=3, sticky="NEW", pady=(3, 0))
+
+# submit button
+submit_button = ttk.Button(frame, text="Submit", command=root.destroy)
+submit_button.grid(column=1, row=6, columnspan=2, sticky="NSEW", padx=(6, 0), pady=(6, 0))
+
+#start it up
 root.mainloop()

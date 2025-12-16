@@ -2,20 +2,56 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import scrolledtext
 from ui_helpers import *
+from game_logic import *
+
+# parse quiz files
+def parse(file_path):
+    questions = [] # each element is a string
+    answers = [] # each element is capital letter
+
+    try:
+        file = open(file_path, "r")
+    except OSError:
+        return -1 # couldnt open file
+
+    with file: # file closes automatically
+        lines = file.readlines() # get all lines as a list
+        for i in range(len(lines))[::5]: # iterate 5 by 5
+            questions.append("".join(lines[i:i+4])) # append next 4 lines as question
+            answers.append(lines[i+4][-2]) # append last character as answer (A, B, C)
+
+    return questions, answers
+
+current_quiz = Quiz() # make new quiz
 
 def start_button_func():
-    print_to_box(main_console, port_entry.get()) # DEBUG
+    # check player count
+    if len(current_quiz.players) < 2:
+        print_to_box(main_console, "Not enough players to start a game.\n")
+        return
 
-def host_button_func(port_entry):
-    port_value = port_entry.get()
-    # TODO
+    # quiz file stuff
+    val = parse(path_entry.get())
+    if val == -1:
+        print_to_box(main_console, "Couldn't open quiz input file.\n")
+        return
+    if not q_amount_entry.get().isnumeric() or int(q_amount_entry.get()) < 1:
+        print_to_box(main_console, "Invalid question amount.\n")
+        return
 
-def disable_host_button(host_button):
+    # start quiz
+    current_quiz.set_qa(val[0], val[1])
+    current_quiz.start(int(q_amount_entry.get()))
+    print_to_box(main_console, current_quiz.scoreboard_printable())
+
+    start_button.configure(state = "disabled")
+
+def host_button_func():
+    # TODO check if ip and port is correct
+    # TODO host server, check errors
+    # TODO listen port for connections
     host_button.configure(state = "disabled")
-
-def enable_host_button(host_button):
-    host_button.configure(state = "enabled")
-
+    
 
 root = Tk()
 frame = ttk.Frame(root, padding=10)
@@ -63,7 +99,7 @@ path_entry = ttk.Entry(frame)
 path_entry.grid(column=1, row=5, columnspan=2, sticky="NEW", padx=(6, 0))
 
 # host button
-host_button = ttk.Button(frame, text="Host")
+host_button = ttk.Button(frame, text="Host", command=host_button_func)
 host_button.grid(column=2, row=1, sticky="NEW", pady=(3, 0))
 
 # start game button

@@ -1,6 +1,3 @@
-# TODO check if logic works when a player disconnects mid game
-# TODO their old score should remain on the table but otherwise they drop out of logic
-
 # create and manage quizzes
 class Quiz:
     def __init__(self):
@@ -68,9 +65,15 @@ class Quiz:
         else:
             self.player_status[p] = 'W' # wrong
 
-        if self.player_answered.count(True) == len(self.players): # all players answered
-            return 1
         return 0
+
+    def check_if_all_answered():
+        count = 0
+        for p in self.players: # only count players that are in the game
+            if self.player_answered[p]:
+                count += 1
+
+        return count == len(self.players) # true if all players answered
 
     def scoreboard_printable(self):
         board = ""

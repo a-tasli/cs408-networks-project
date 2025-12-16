@@ -2,6 +2,15 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import scrolledtext
 
+def connect_button_func():
+    pass
+
+def disconnect_button_func():
+    pass
+
+def submit_button_func():
+    pass
+
 root = Tk()
 
 frame = ttk.Frame(root, padding=10)
@@ -68,18 +77,15 @@ c_button = ttk.Radiobutton(radio_frame, text="C", value='C', variable=choice_sel
 c_button.grid(column=2, row=0, sticky="NEW", pady=(6, 0))
 
 # connect button
-connect_button = ttk.Button(frame, text="Connect")
+connect_button = ttk.Button(frame, text="Connect", command= lambda: connect_button_func())
 connect_button.grid(column=1, row=4, sticky="NEW", padx=(6, 0))
 
 # disconnect button
-disconnect_button = ttk.Button(frame, text="Disconnect")
+disconnect_button = ttk.Button(frame, text="Disconnect", command= lambda: disconnect_button_func())
 disconnect_button.grid(column=2, row=4, sticky="NEW", padx=(0, 0))
 
-def debug():
-    print(choice_selected.get())
-
 # submit button
-submit_button = ttk.Button(frame, text="Submit", command=debug)
+submit_button = ttk.Button(frame, text="Submit", command=lambda: submit_button_func)
 submit_button.grid(column=1, row=7, columnspan=2, sticky="NSEW", padx=(6, 0), pady=(6, 0))
 
 #start it up

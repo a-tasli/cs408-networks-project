@@ -3,6 +3,9 @@ from tkinter import ttk
 from tkinter import scrolledtext
 from ui_helpers import *
 
+def host_button_func(port_entry):
+    port_value = port_entry.get()
+
 def start_button_func():
     print_to_box(main_console, port_entry.get()) # DEBUG
 

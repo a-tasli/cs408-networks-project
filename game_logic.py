@@ -1,5 +1,3 @@
-# TODO only update scoreboard after all answers received
-
 # create and manage quizzes
 class Quiz:
     def __init__(self):
@@ -66,7 +64,7 @@ class Quiz:
             self.player_status[p] = 'W' # wrong
 
         return 0
-    
+
     def check_if_all_answered():
         count = 0
         for p in self.players: # only count players that are in the game

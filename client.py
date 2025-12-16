@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import ttk
+from tkinter import scrolledtext
 
 root = Tk()
 
@@ -24,7 +25,7 @@ frame.columnconfigure(1, weight=4)
 frame.columnconfigure(2, weight=1)
 
 # the console/monitor that stuff is printed to
-main_console = Listbox(frame)
+main_console = scrolledtext.ScrolledText(frame)
 main_console.grid(column=0, row=0, rowspan=7, sticky="NSEW")
 
 # labels (text)
@@ -54,21 +55,27 @@ radio_frame.columnconfigure(1, weight=1)
 radio_frame.columnconfigure(2, weight=1)
 
 # radio buttons for choices
-a_button = ttk.Radiobutton(radio_frame, text="A")
+
+choice_selected = StringVar()
+
+a_button = ttk.Radiobutton(radio_frame, text="A", value='A', variable=choice_selected)
 a_button.grid(column=0, row=0, sticky="NEW", pady=(6, 0))
 
-b_button = ttk.Radiobutton(radio_frame, text="B")
+b_button = ttk.Radiobutton(radio_frame, text="B", value='B', variable=choice_selected)
 b_button.grid(column=1, row=0, sticky="NEW", pady=(6, 0))
 
-c_button = ttk.Radiobutton(radio_frame, text="C")
+c_button = ttk.Radiobutton(radio_frame, text="C", value='C', variable=choice_selected)
 c_button.grid(column=2, row=0, sticky="NEW", pady=(6, 0))
 
 # connect button
 connect_button = ttk.Button(frame, text="Connect")
 connect_button.grid(column=2, row=3, sticky="NEW", pady=(3, 0))
 
+def debug():
+    print(choice_selected.get())
+
 # submit button
-submit_button = ttk.Button(frame, text="Submit", command=root.destroy)
+submit_button = ttk.Button(frame, text="Submit", command=debug)
 submit_button.grid(column=1, row=6, columnspan=2, sticky="NSEW", padx=(6, 0), pady=(6, 0))
 
 #start it up

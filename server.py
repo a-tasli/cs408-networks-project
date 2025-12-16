@@ -8,6 +8,7 @@ def start_button_func():
 
 def host_button_func(port_entry):
     port_value = port_entry.get()
+    # TODO
 
 def disable_host_button(host_button):
     host_button.configure(state = "disabled")

@@ -3,13 +3,13 @@ from tkinter import ttk
 from tkinter import scrolledtext
 
 def connect_button_func():
-    pass
+    pass # TODO
 
 def disconnect_button_func():
-    pass
+    pass # TODO
 
 def submit_button_func():
-    pass
+    pass # TODO
 
 root = Tk()
 

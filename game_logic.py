@@ -1,3 +1,5 @@
+# TODO only update scoreboard after all answers received
+
 # create and manage quizzes
 class Quiz:
     def __init__(self):
@@ -57,16 +59,14 @@ class Quiz:
         if answer == self.answers[self.question_index % len(self.answers)]: # correct answer, can loop
             if not self.first_taken: # bonus points, total equal to player count
                 self.first_taken = True
-                self.scoreboard[player_name] += len(self.players)
                 self.player_status[p] = 'F' # first
             else:
-                self.scoreboard[player_name] += 1
                 self.player_status[p] = 'C' # correct
         else:
             self.player_status[p] = 'W' # wrong
 
         return 0
-
+    
     def check_if_all_answered():
         count = 0
         for p in self.players: # only count players that are in the game
@@ -74,6 +74,13 @@ class Quiz:
                 count += 1
 
         return count == len(self.players) # true if all players answered
+
+    def update_scores():
+        for p in self.players:
+            if self.player_status[p] == 'F':
+                self.scoreboard[p] += len(self.players) # bonus points
+            elif self.player_status[p] == 'C':
+                self.scoreboard[p] += 1
 
     def scoreboard_printable(self):
         board = ""

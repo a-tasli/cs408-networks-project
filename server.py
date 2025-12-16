@@ -2,6 +2,18 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import scrolledtext
 
+def start_button_func():
+    port_value = port_entry.get()
+    q_amount_value = q_amount_entry.get()
+    path_value = path_entry.get()
+
+def disable_host_button(host_button):
+    host_button.configure(state = "disabled")
+
+def enable_host_button(host_button):
+    host_button.configure(state = "enabled")
+
+
 root = Tk()
 frame = ttk.Frame(root, padding=10)
 frame.grid(sticky="NSEW")

@@ -1,6 +1,8 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import scrolledtext
+import socket
+import threading
 
 def connect_button_func():
     pass # TODO

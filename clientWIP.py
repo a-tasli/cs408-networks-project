@@ -9,11 +9,14 @@ def receive_messages(client_socket):
             if message:
                 print(f"\n[SERVER]: {message}")
             else:
+                # graceful close
                 break
         except:
             print("[ERROR] Connection lost.")
+            # error close
             break
 
+# TODO make these function
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(('127.0.0.1', 12345))
 

@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import scrolledtext
+import socket
 import string
 
 def print_to_box(box : scrolledtext.ScrolledText, a : string):
@@ -10,7 +11,6 @@ def print_to_box(box : scrolledtext.ScrolledText, a : string):
 
 
 def receive_messages(client_socket, message_callback, disconnect_callback):
-
     while True:
         try:
             # Block and wait for data

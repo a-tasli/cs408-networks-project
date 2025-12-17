@@ -47,7 +47,7 @@ def start_button_func():
     start_button.configure(state = "disabled")
 
 def host_button_func():
-    # TODO check if ip and port is correct
+    # TODO check if ip and port are correct
     # TODO host server, check errors
     # TODO listen port for connections
     host_button.configure(state = "disabled")

@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import scrolledtext
-from ui_helpers import *
+from helpers import *
 from game_logic import *
 
 # parse quiz files

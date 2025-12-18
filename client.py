@@ -28,6 +28,7 @@ def reset_ui_state():
     # Helper to reset buttons when disconnected
     connect_button.configure(state="normal")
     disconnect_button.configure(state="disabled")
+    submit_button.configure(state="disabled")
     # We don't close the socket here because it might already be closed
 
 def connect_button_func():
@@ -52,6 +53,7 @@ def connect_button_func():
         
         connect_button.configure(state="disabled")
         disconnect_button.configure(state="normal")
+        submit_button.configure(state="normal")
         
         # Start listener thread
         t = threading.Thread(target=listen_to_server, daemon=True)
@@ -174,6 +176,7 @@ c_button.grid(column=2, row=0, sticky="NEW", pady=(6, 0))
 # submit button
 submit_button = ttk.Button(frame, text="Submit", command=submit_button_func)
 submit_button.grid(column=1, row=9, columnspan=2, sticky="NSEW", padx=(6, 0), pady=(6, 0))
+submit_button.configure(state="disabled")
 
 #start it up
 root.mainloop()

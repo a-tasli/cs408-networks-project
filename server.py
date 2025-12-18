@@ -54,6 +54,7 @@ def send_private_feedback():
                 pass
 
 def handle_client(conn, addr):
+    global current_quiz
     print(f"[NEW CONNECTION] {addr}")
     player_name = None
 
@@ -104,6 +105,24 @@ def handle_client(conn, addr):
                                 broadcast(f"\n{q_text}\n")
                             else:
                                 broadcast("\n--- GAME OVER ---\n")
+                                print_to_box(main_console, "Game Over. Resetting.\n")
+                                
+                                # Disconnect all players
+                                for sock in list(clients.keys()):
+                                    try:
+                                        sock.shutdown(socket.SHUT_RDWR)
+                                    except:
+                                        pass
+                                    try:
+                                        sock.close()
+                                    except:
+                                        pass
+                                
+                                # Full Reset: Create new Quiz object
+                                current_quiz = Quiz() 
+                                clients.clear()
+                                start_button.configure(state="normal")
+                                return
                     else:
                         conn.send("You already answered this round.\n".encode())
                 else:
@@ -115,7 +134,7 @@ def handle_client(conn, addr):
             print(f"Error handling client {addr}: {e}")
             break
 
-    # Cleanup
+    # Cleanup (Player Disconnect)
     if player_name:
         current_quiz.drop_player(player_name)
         broadcast(f"{player_name} left the game.\n")
@@ -130,11 +149,25 @@ def handle_client(conn, addr):
         pass
         
     # Check if game should end due to lack of players
+    # We use global current_quiz here because it might have been replaced in another thread
     if current_quiz.started and len(current_quiz.players) < 2:
         print_to_box(main_console, "Not enough players. Game Over.\n")
         broadcast("\nNot enough players remaining. Game ended.\n")
-        current_quiz.started = False
-        # Reset start button so the host can start a new game with remaining/new players
+        
+        # Disconnect any remaining players (the 1 survivor)
+        for sock in list(clients.keys()):
+            try:
+                sock.shutdown(socket.SHUT_RDWR)
+            except:
+                pass
+            try:
+                sock.close()
+            except:
+                pass
+        
+        # Full Reset: Create new Quiz object
+        current_quiz = Quiz()
+        clients.clear()
         start_button.configure(state="normal")
 
 def accept_clients():

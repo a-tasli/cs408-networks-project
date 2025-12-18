@@ -57,15 +57,15 @@ class Quiz:
         if answer == self.answers[self.question_index % len(self.answers)]: # correct answer, can loop
             if not self.first_taken: # bonus points, total equal to player count
                 self.first_taken = True
-                self.player_status[p] = 'F' # first
+                self.player_status[player_name] = 'F' # first
             else:
-                self.player_status[p] = 'C' # correct
+                self.player_status[player_name] = 'C' # correct
         else:
-            self.player_status[p] = 'W' # wrong
+            self.player_status[player_name] = 'W' # wrong
 
         return 0
 
-    def check_if_all_answered():
+    def check_if_all_answered(self):
         count = 0
         for p in self.players: # only count players that are in the game
             if self.player_answered[p]:
@@ -73,7 +73,7 @@ class Quiz:
 
         return count == len(self.players) # true if all players answered
 
-    def update_scores():
+    def update_scores(self):
         for p in self.players:
             if self.player_status[p] == 'F':
                 self.scoreboard[p] += len(self.players) # bonus points

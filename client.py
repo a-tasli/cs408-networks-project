@@ -23,7 +23,7 @@ def listen_to_server():
             print_to_box(main_console, "\nAbruptly disconnected.\n")
             break
     
-    # server disconnected or we quit -> update UI
+    # server disconnected or we quit -> update ui
     reset_ui_state()
 
 def reset_ui_state():
@@ -74,7 +74,7 @@ def disconnect_button_func():
             print_to_box(main_console, f"Disconnect failed(??)\n") # shouldnt get here
         client_socket = None
     
-    # UI reset will happen in listen_to_server anyway
+    # ui reset will happen in listen_to_server anyway
     # but we force it here too just in case
     reset_ui_state()
 

@@ -228,7 +228,7 @@ def start_button_func():
     print_to_box(main_console, q_text)
     print_to_box(main_console, f"Answer: {current_quiz.answers[0]}\n")
 
-    start_button.configure(state = "disabled") # update UI
+    start_button.configure(state = "disabled") # update ui
 
 def host_button_func():
     global server_socket

@@ -385,13 +385,13 @@ main_console.grid(column=0, row=0, rowspan=7, sticky="NSEW")
 main_console.configure(state ='disabled')
 
 # labels (text)
-port_label = ttk.Label(frame, text="Port", anchor=W)
+port_label = ttk.Label(frame, text="Port:", anchor=W)
 port_label.grid(column=1, row=0, sticky="EW", padx=(6, 6))
 
-q_amount_label = ttk.Label(frame, text="# of questions", anchor=W)
+q_amount_label = ttk.Label(frame, text="# of questions:", anchor=W)
 q_amount_label.grid(column=1, row=2, sticky="W", padx=(6, 0))
 
-path_label = ttk.Label(frame, text="Path to questions file", anchor=W)
+path_label = ttk.Label(frame, text="Path to questions file:", anchor=W)
 path_label.grid(column=1, row=4, sticky="W", padx=(6, 0))
 
 # entry boxes

@@ -35,19 +35,18 @@ def broadcast(msg):
         except:
             pass
 
-def send_private_feedback():
-    """Sends individual feedback to each player about their answer status."""
+def send_private_feedback(): # sent to all players but each message is personalised
     for sock, name in clients.items():
         status = current_quiz.player_status.get(name)
         msg = ""
         if status == 'F':
-            msg = "\nCorrect! You answered first (+ Bonus Points)!\n"
+            msg = f"\nCorrect! (+ {len(current_quiz.players) - 1} Bonus Points)\n"
         elif status == 'C':
             msg = "\nCorrect!\n"
         elif status == 'W':
             msg = "\nWrong answer.\n"
         
-        if msg:
+        if msg: # status could be '0' if player left
             try:
                 sock.send(msg.encode())
             except:
@@ -55,76 +54,73 @@ def send_private_feedback():
 
 def handle_client(conn, addr):
     global current_quiz
-    print(f"[NEW CONNECTION] {addr}")
+    print_to_box(main_console, f"New connection from: {addr}")
     player_name = None
 
+    # game loop / call class functions
     while True:
         try:
-            msg = conn.recv(1024).decode()
-            if not msg:
+            msg = conn.recv(1024).decode() # get message
+            if not msg: # client disconnected
                 break
             
-            # STATE MACHINE LOGIC
-            
-            # State 1: Lobby (Not Started)
+            # lobby state
             if not current_quiz.started:
-                # If the player hasn't joined yet, treat message as a Name Join Request
-                if player_name is None:
-                    name_attempt = msg.strip()
-                    if current_quiz.add_player(name_attempt) == 0:
-                        player_name = name_attempt
+                if player_name is None: # if the player hasnt joined yet
+                    name_attempt = msg.strip() # msg sent is name
+                    if not current_quiz.add_player(name_attempt): # name not taken
+                        player_name = name_attempt # take name
                         clients[conn] = player_name
                         print_to_box(main_console, f"{player_name} has joined.\n")
                         broadcast(f"{player_name} joined the lobby.\n")
-                    else:
-                        # Name taken or invalid
+                    else: # name was already taken (add_player returned -1)
                         conn.send("Name unavailable. Please reconnect with a different name.\n".encode())
-                        # Close connection to force client reset
+                        print_to_box(main_console, f"Name {name_attempt} was taken, disconnecting client.\n")
+                        # close connection to force client reset
                         conn.close()
-                        return # Exit thread
+                        return
                 else:
-                    # Player is already joined, but game hasn't started.
-                    # Ignore premature inputs (like answers)
-                    conn.send("Game has not started yet.\n".encode())
+                    # impatient client pressed button early right after joining
+                    conn.send("Game has not started yet. Please wait.\n".encode())
             
-            # State 2: Game Started -> Msg is Answer (A/B/C)
+            # quiz state -> msg is answer A, B, C
             else:
-                if player_name:
-                    res = current_quiz.give_answer(player_name, msg)
-                    if res == 0:
+                if player_name: # player is in lobby
+                    duplicate_ans = current_quiz.give_answer(player_name, msg)
+                    if not duplicate_ans:
                         print_to_box(main_console, f"{player_name} answered {msg}.\n")
-                        conn.send("Answer received.\n".encode())
+                        conn.send("Answer received.\n".encode()) # acknowledgement
                         
-                        # Check State Transition
+                        # check state transition
                         if current_quiz.check_if_all_answered():
-                            # 1. Send Feedback to individual players
+                            # send feedback to individual players
                             send_private_feedback()
                             
-                            # 2. Update Scores
+                            # update scores
                             current_quiz.update_scores()
                             
-                            # 3. Broadcast Scoreboard
+                            # broadcast scoreboard
                             sb = current_quiz.scoreboard_printable()
-                            broadcast(f"\n--- ROUND OVER ---\n{sb}\n")
+                            broadcast(f"\n--- ROUND OVER ---\n{sb}")
                             # Print scoreboard to server console as well
-                            print_to_box(main_console, f"\n--- ROUND OVER ---\n{sb}\n")
+                            print_to_box(main_console, f"\nScoreboard:\n{sb}")
                             
-                            # Next Question or End Game
-                            if current_quiz.next_question() == 0:
+                            # next question
+                            if not current_quiz.next_question():
                                 q_text = current_quiz.current_question_printable()
                                 ans_text = current_quiz.answers[current_quiz.question_index]
-                                broadcast(f"\n{q_text}\n")
-                                print_to_box(main_console, f"\n{q_text}\n")
+                                broadcast(f"\n{q_text}")
+                                print_to_box(main_console, f"\n{q_text}")
                                 print_to_box(main_console, f"Answer: {ans_text}\n")
-                            else:
-                                # Prepare final scoreboard
+                            else: # out of questions
+                                # prepare final scoreboard
                                 final_sb = current_quiz.scoreboard_printable()
                                 broadcast(f"\n--- GAME OVER ---\nFINAL SCORES:\n{final_sb}\n")
-                                print_to_box(main_console, f"\n--- GAME OVER ---\nFINAL SCORES:\n{final_sb}\n")
-                                print_to_box(main_console, "Game Over. Resetting.\n")
+                                print_to_box(main_console, f"\nGame over.\nFinal scoreboard:\n{final_sb}\n")
+                                print_to_box(main_console, "Resetting.\n")
                                 
-                                # Disconnect all players
-                                for sock in list(clients.keys()):
+                                # disconnect all players
+                                for sock in list(clients.keys()): # try closing all of them just in case
                                     try:
                                         sock.shutdown(socket.SHUT_RDWR)
                                     except:
@@ -134,50 +130,49 @@ def handle_client(conn, addr):
                                     except:
                                         pass
                                 
-                                # Log disconnect for this thread (since we return early)
+                                # log disconnect for this thread (since we return early)
                                 print_to_box(main_console, f"{player_name} disconnected.\n")
 
-                                # Full Reset: Create new Quiz object
+                                # create new quiz object / clear clients
                                 current_quiz = Quiz() 
                                 clients.clear()
                                 start_button.configure(state="normal")
                                 return
                     else:
                         conn.send("You already answered this round.\n".encode())
-                else:
-                    # Late joiner attempting to connect after game start
+                else: # game already in progress, reject client
                     conn.send("Game already in progress. Connection refused.\n".encode())
-                    break
+                    print_to_box(main_console, f"{name_attempt} tried to join while game was in progress, disconnecting client.\n")
+                    # close connection to force client reset
+                    conn.close()
+                    return
 
         except Exception as e:
             print(f"Error handling client {addr}: {e}")
             break
 
-    # Cleanup (Player Disconnect)
+    # cleanup
     if player_name:
         current_quiz.drop_player(player_name)
-        broadcast(f"{player_name} left the game.\n")
+        broadcast(f"{player_name} left the game.\n") # send it to everyone else
         print_to_box(main_console, f"{player_name} disconnected.\n")
     
     if conn in clients:
         del clients[conn]
     
     try:
-        conn.close()
+        conn.close() # one final close attempt just in case
     except:
         pass
         
-    # Check if game should end due to lack of players
-    # We use global current_quiz here because it might have been replaced in another thread
-    if current_quiz.started and len(current_quiz.players) < 2:
-        print_to_box(main_console, "Not enough players. Game Over.\n")
-        
-        # Prepare final scoreboard
+    # check if game should end due to lack of players
+    if current_quiz.started and len(current_quiz.players) < 2:        
+        # prepare final scoreboard
         final_sb = current_quiz.scoreboard_printable()
-        broadcast(f"\nNot enough players remaining. Game ended.\nFINAL SCORES:\n{final_sb}\n")
-        print_to_box(main_console, f"\nNot enough players remaining. Game ended.\nFINAL SCORES:\n{final_sb}\n")
+        broadcast(f"\nNot enough players remaining. Game over.\nFINAL SCORES:\n{final_sb}\n")
+        print_to_box(main_console, f"Not enough players remaining. Game ended.\nFinal scoreboard:\n{final_sb}\n")
         
-        # Disconnect any remaining players (the 1 survivor)
+        # disconnect any remaining players
         for sock in list(clients.keys()):
             try:
                 sock.shutdown(socket.SHUT_RDWR)
@@ -188,13 +183,10 @@ def handle_client(conn, addr):
             except:
                 pass
         
-        # Log disconnect for this thread if strictly needed (usually covered by cleanup if we didn't return)
-        # However, we are resetting current_quiz below, so standard cleanup might fail logic on 'drop_player'
-        # safely logging here ensures visibility
-        if player_name:
-             print_to_box(main_console, f"{player_name} disconnected.\n")
+        if player_name: # i am the last player and im ending the game
+            print_to_box(main_console, f"{player_name} disconnected.\n")
 
-        # Full Reset: Create new Quiz object
+        # reset quiz and client list
         current_quiz = Quiz()
         clients.clear()
         start_button.configure(state="normal")
@@ -203,11 +195,11 @@ def accept_clients():
     while True:
         try:
             conn, addr = server_socket.accept()
-            t = threading.Thread(target=handle_client, args=(conn, addr))
-            t.daemon = True
+            # start a thread for each client, concurrency is needed
+            t = threading.Thread(target=handle_client, args=(conn, addr), daemon=True)
             t.start()
         except:
-            break
+            break # just in case
 
 def start_button_func():
     # check player count
@@ -228,19 +220,20 @@ def start_button_func():
     current_quiz.set_qa(val[0], val[1])
     current_quiz.start(int(q_amount_entry.get()))
     
-    # Broadcast start
-    print_to_box(main_console, "Game Started!\n")
+    # broadcast start
+    print_to_box(main_console, "Game started.\n")
     broadcast("\n--- GAME STARTED ---\n")
     q_text = current_quiz.current_question_printable()
-    broadcast(f"{q_text}\n")
-    print_to_box(main_console, f"{q_text}\n")
+    broadcast(q_text)
+    print_to_box(main_console, q_text)
 
-    start_button.configure(state = "disabled")
+    start_button.configure(state = "disabled") # update UI
 
 def host_button_func():
     global server_socket
     try:
         port = int(port_entry.get())
+        # open connection
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.bind(('0.0.0.0', port))
         server_socket.listen()
@@ -248,13 +241,15 @@ def host_button_func():
         print_to_box(main_console, f"Server hosted on port {port}.\n")
         host_button.configure(state = "disabled")
         
-        # Start accepting clients in a thread
+        # start accepting clients in a new thread (ui shouldnt freeze)
         t = threading.Thread(target=accept_clients, daemon=True)
         t.start()
         
     except Exception as e:
         print_to_box(main_console, f"Error hosting server: {e}\n")
-    
+
+
+# -- ui creation --
 
 root = Tk()
 root.title("Quiz Server")

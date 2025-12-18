@@ -183,7 +183,7 @@ def handle_client(conn, addr):
             except:
                 pass
         
-        if player_name and current_quiz.players[player_name]: # i am the last player and im ending the game
+        if player_name and current_quiz.players.count(player_name): # i am the last player and im ending the game
             print_to_box(main_console, f"{player_name} disconnected.\n")
 
         # reset quiz and client list

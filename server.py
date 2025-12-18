@@ -35,6 +35,24 @@ def broadcast(msg):
         except:
             pass
 
+def send_private_feedback():
+    """Sends individual feedback to each player about their answer status."""
+    for sock, name in clients.items():
+        status = current_quiz.player_status.get(name)
+        msg = ""
+        if status == 'F':
+            msg = "\nCorrect! You answered first (+ Bonus Points)!\n"
+        elif status == 'C':
+            msg = "\nCorrect!\n"
+        elif status == 'W':
+            msg = "\nWrong answer.\n"
+        
+        if msg:
+            try:
+                sock.send(msg.encode())
+            except:
+                pass
+
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr}")
     player_name = None
@@ -71,7 +89,13 @@ def handle_client(conn, addr):
                         
                         # Check State Transition
                         if current_quiz.check_if_all_answered():
+                            # 1. Send Feedback to individual players
+                            send_private_feedback()
+                            
+                            # 2. Update Scores
                             current_quiz.update_scores()
+                            
+                            # 3. Broadcast Scoreboard
                             broadcast(f"\n--- ROUND OVER ---\n{current_quiz.scoreboard_printable()}\n")
                             
                             # Next Question or End Game
@@ -100,6 +124,14 @@ def handle_client(conn, addr):
         conn.close()
     except:
         pass
+        
+    # Check if game should end due to lack of players
+    if current_quiz.started and len(current_quiz.players) < 2:
+        print_to_box(main_console, "Not enough players. Game Over.\n")
+        broadcast("\nNot enough players remaining. Game ended.\n")
+        current_quiz.started = False
+        # Reset start button so the host can start a new game with remaining/new players
+        start_button.configure(state="normal")
 
 def accept_clients():
     while True:

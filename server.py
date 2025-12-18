@@ -105,8 +105,10 @@ def handle_client(conn, addr):
                             # Next Question or End Game
                             if current_quiz.next_question() == 0:
                                 q_text = current_quiz.current_question_printable()
+                                ans_text = current_quiz.answers[current_quiz.question_index]
                                 broadcast(f"\n{q_text}\n")
                                 print_to_box(main_console, f"\n{q_text}\n")
+                                print_to_box(main_console, f"Answer: {ans_text}\n")
                             else:
                                 # Prepare final scoreboard
                                 final_sb = current_quiz.scoreboard_printable()

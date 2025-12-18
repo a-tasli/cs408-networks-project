@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import scrolledtext
 import socket
 import threading
+import string
 
 # create and manage quizzes
 class Quiz:

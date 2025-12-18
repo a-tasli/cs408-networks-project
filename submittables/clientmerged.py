@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import scrolledtext
 import socket
 import threading
+import string
 
 # helper
 def print_to_box(box : scrolledtext.ScrolledText, a : string):

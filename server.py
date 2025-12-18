@@ -106,6 +106,10 @@ def handle_client(conn, addr):
                                 broadcast("\n--- GAME OVER ---\n")
                     else:
                         conn.send("You already answered this round.\n".encode())
+                else:
+                    # Late joiner attempting to connect after game start
+                    conn.send("Game already in progress. Connection refused.\n".encode())
+                    break
 
         except Exception as e:
             print(f"Error handling client {addr}: {e}")

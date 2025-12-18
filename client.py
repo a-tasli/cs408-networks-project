@@ -7,6 +7,7 @@ import threading
 
 client_socket = None
 
+# only job of client is to print whatever server sends, and send name/answer to server
 def listen_to_server():
     while True:
         try:
@@ -14,22 +15,21 @@ def listen_to_server():
             if msg:
                 print_to_box(main_console, msg)
             else:
-                # Empty message means server closed connection
+                # empty message means server closed connection
+                print_to_box(main_console, "\nDisconnected.\n")
                 break
         except:
+            # abrupt disconnection
+            print_to_box(main_console, "\nAbruptly disconnected.\n")
             break
     
-    # When loop breaks (server disconnected or we quit), update UI
-    # Note: modifying UI from thread is risky in Tkinter, but usually works for simple config
-    print_to_box(main_console, "\n[Disconnected]\n")
+    # server disconnected or we quit -> update UI
     reset_ui_state()
 
 def reset_ui_state():
-    # Helper to reset buttons when disconnected
     connect_button.configure(state="normal")
     disconnect_button.configure(state="disabled")
     submit_button.configure(state="disabled")
-    # We don't close the socket here because it might already be closed
 
 def connect_button_func():
     global client_socket
@@ -42,20 +42,21 @@ def connect_button_func():
             print_to_box(main_console, "Please enter a name.\n")
             return
         
+        # open socket/connection
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((ip, port))
-        
         print_to_box(main_console, f"Connected to {ip}:{port}\n")
         
-        # State Machine: The first thing we send is our Name (JOIN)
+        # send our name first
         client_socket.send(name.encode())
         print_to_box(main_console, f"Joining as {name}...\n")
         
+        # ui state
         connect_button.configure(state="disabled")
         disconnect_button.configure(state="normal")
         submit_button.configure(state="normal")
         
-        # Start listener thread
+        # start listener thread (ui shouldnt freeze)
         t = threading.Thread(target=listen_to_server, daemon=True)
         t.start()
         
@@ -64,29 +65,34 @@ def connect_button_func():
 
 def disconnect_button_func():
     global client_socket
-    if client_socket:
+    if client_socket: # if connected
         try:
-            # Shutdown ensures the server gets the disconnect signal immediately
+            # shutdown ensures the server gets the disconnect signal immediately
             client_socket.shutdown(socket.SHUT_RDWR)
             client_socket.close()
         except:
-            pass
+            print_to_box(main_console, f"Disconnect failed(??)\n") # shouldnt get here
         client_socket = None
     
-    # UI reset will happen in listen_to_server when the socket breaks, 
+    # UI reset will happen in listen_to_server anyway
     # but we force it here too just in case
     reset_ui_state()
 
 def submit_button_func():
-    if client_socket:
+    if client_socket: # if connected
         choice = choice_selected.get()
         if choice:
-            # State Machine: If game is running, sending 'A', 'B', 'C' acts as answering
+            # if game is running sending 'A', 'B', 'C' counts as answering (rather than player name)
             try:
                 client_socket.send(choice.encode())
                 print_to_box(main_console, f"Submitted: {choice}\n")
             except:
                 print_to_box(main_console, "Error sending answer.\n")
+        else:
+            print_to_box(main_console, "Please select an answer before submitting.\n")
+
+
+# -- ui creation --
 
 root = Tk()
 root.title("Quiz Client")
@@ -103,12 +109,12 @@ frame.rowconfigure(0, weight=1)
 frame.rowconfigure(1, weight=1)
 frame.rowconfigure(2, weight=1)
 frame.rowconfigure(3, weight=1)
-frame.rowconfigure(4, weight=1) # Name label
-frame.rowconfigure(5, weight=1) # Name entry
-frame.rowconfigure(6, weight=1) # Buttons
-frame.rowconfigure(7, weight=1) # Answer label
-frame.rowconfigure(8, weight=1) # Radio buttons
-frame.rowconfigure(9, weight=2) # Submit button
+frame.rowconfigure(4, weight=1) # name label
+frame.rowconfigure(5, weight=1) # name entry
+frame.rowconfigure(6, weight=1) # buttons
+frame.rowconfigure(7, weight=1) # answer label
+frame.rowconfigure(8, weight=1) # radio buttons
+frame.rowconfigure(9, weight=2) # submit button
 
 frame.columnconfigure(0, weight=2)
 frame.columnconfigure(1, weight=1)
@@ -178,5 +184,5 @@ submit_button = ttk.Button(frame, text="Submit", command=submit_button_func)
 submit_button.grid(column=1, row=9, columnspan=2, sticky="NSEW", padx=(6, 0), pady=(6, 0))
 submit_button.configure(state="disabled")
 
-#start it up
+# start it up
 root.mainloop()

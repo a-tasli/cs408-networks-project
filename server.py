@@ -66,19 +66,26 @@ def handle_client(conn, addr):
             
             # STATE MACHINE LOGIC
             
-            # State 1: Lobby (Not Started) -> Msg is Player Name
+            # State 1: Lobby (Not Started)
             if not current_quiz.started:
-                player_name = msg.strip()
-                if current_quiz.add_player(player_name) == 0:
-                    clients[conn] = player_name
-                    print_to_box(main_console, f"{player_name} has joined.\n")
-                    broadcast(f"{player_name} joined the lobby.\n")
+                # If the player hasn't joined yet, treat message as a Name Join Request
+                if player_name is None:
+                    name_attempt = msg.strip()
+                    if current_quiz.add_player(name_attempt) == 0:
+                        player_name = name_attempt
+                        clients[conn] = player_name
+                        print_to_box(main_console, f"{player_name} has joined.\n")
+                        broadcast(f"{player_name} joined the lobby.\n")
+                    else:
+                        # Name taken or invalid
+                        conn.send("Name unavailable. Please reconnect with a different name.\n".encode())
+                        # Close connection to force client reset
+                        conn.close()
+                        return # Exit thread
                 else:
-                    # Name taken or invalid
-                    conn.send("Name unavailable. Please reconnect with a different name.\n".encode())
-                    # Close connection to force client reset
-                    conn.close()
-                    return # Exit thread
+                    # Player is already joined, but game hasn't started.
+                    # Ignore premature inputs (like answers)
+                    conn.send("Game has not started yet.\n".encode())
             
             # State 2: Game Started -> Msg is Answer (A/B/C)
             else:

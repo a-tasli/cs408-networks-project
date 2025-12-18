@@ -54,7 +54,7 @@ def send_private_feedback(): # sent to all players but each message is personali
 
 def handle_client(conn, addr):
     global current_quiz
-    print_to_box(main_console, f"New connection from: {addr}")
+    print_to_box(main_console, f"New connection from: {addr}\n")
     player_name = None
 
     # game loop / call class functions

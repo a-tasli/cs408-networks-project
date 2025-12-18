@@ -166,7 +166,7 @@ def handle_client(conn, addr):
         pass
         
     # check if game should end due to lack of players
-    if current_quiz.started and len(current_quiz.players) < 2:        
+    if current_quiz.started and len(current_quiz.players) < 2:
         # prepare final scoreboard
         final_sb = current_quiz.scoreboard_printable()
         broadcast(f"\nNot enough players remaining. Game over.\nFINAL SCORES:\n{final_sb}\n")
@@ -183,7 +183,7 @@ def handle_client(conn, addr):
             except:
                 pass
         
-        if player_name: # i am the last player and im ending the game
+        if player_name and current_quiz.players[player_name]: # i am the last player and im ending the game
             print_to_box(main_console, f"{player_name} disconnected.\n")
 
         # reset quiz and client list

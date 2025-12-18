@@ -106,6 +106,7 @@ def handle_client(conn, addr):
                             if current_quiz.next_question() == 0:
                                 q_text = current_quiz.current_question_printable()
                                 broadcast(f"\n{q_text}\n")
+                                print_to_box(main_console, f"\n{q_text}\n")
                             else:
                                 # Prepare final scoreboard
                                 final_sb = current_quiz.scoreboard_printable()
@@ -124,6 +125,9 @@ def handle_client(conn, addr):
                                     except:
                                         pass
                                 
+                                # Log disconnect for this thread (since we return early)
+                                print_to_box(main_console, f"{player_name} disconnected.\n")
+
                                 # Full Reset: Create new Quiz object
                                 current_quiz = Quiz() 
                                 clients.clear()
@@ -175,6 +179,12 @@ def handle_client(conn, addr):
             except:
                 pass
         
+        # Log disconnect for this thread if strictly needed (usually covered by cleanup if we didn't return)
+        # However, we are resetting current_quiz below, so standard cleanup might fail logic on 'drop_player'
+        # safely logging here ensures visibility
+        if player_name:
+             print_to_box(main_console, f"{player_name} disconnected.\n")
+
         # Full Reset: Create new Quiz object
         current_quiz = Quiz()
         clients.clear()
@@ -212,7 +222,9 @@ def start_button_func():
     # Broadcast start
     print_to_box(main_console, "Game Started!\n")
     broadcast("\n--- GAME STARTED ---\n")
-    broadcast(f"{current_quiz.current_question_printable()}\n")
+    q_text = current_quiz.current_question_printable()
+    broadcast(f"{q_text}\n")
+    print_to_box(main_console, f"{q_text}\n")
 
     start_button.configure(state = "disabled")
 

@@ -97,14 +97,20 @@ def handle_client(conn, addr):
                             current_quiz.update_scores()
                             
                             # 3. Broadcast Scoreboard
-                            broadcast(f"\n--- ROUND OVER ---\n{current_quiz.scoreboard_printable()}\n")
+                            sb = current_quiz.scoreboard_printable()
+                            broadcast(f"\n--- ROUND OVER ---\n{sb}\n")
+                            # Print scoreboard to server console as well
+                            print_to_box(main_console, f"\n--- ROUND OVER ---\n{sb}\n")
                             
                             # Next Question or End Game
                             if current_quiz.next_question() == 0:
                                 q_text = current_quiz.current_question_printable()
                                 broadcast(f"\n{q_text}\n")
                             else:
-                                broadcast("\n--- GAME OVER ---\n")
+                                # Prepare final scoreboard
+                                final_sb = current_quiz.scoreboard_printable()
+                                broadcast(f"\n--- GAME OVER ---\nFINAL SCORES:\n{final_sb}\n")
+                                print_to_box(main_console, f"\n--- GAME OVER ---\nFINAL SCORES:\n{final_sb}\n")
                                 print_to_box(main_console, "Game Over. Resetting.\n")
                                 
                                 # Disconnect all players
@@ -152,7 +158,11 @@ def handle_client(conn, addr):
     # We use global current_quiz here because it might have been replaced in another thread
     if current_quiz.started and len(current_quiz.players) < 2:
         print_to_box(main_console, "Not enough players. Game Over.\n")
-        broadcast("\nNot enough players remaining. Game ended.\n")
+        
+        # Prepare final scoreboard
+        final_sb = current_quiz.scoreboard_printable()
+        broadcast(f"\nNot enough players remaining. Game ended.\nFINAL SCORES:\n{final_sb}\n")
+        print_to_box(main_console, f"\nNot enough players remaining. Game ended.\nFINAL SCORES:\n{final_sb}\n")
         
         # Disconnect any remaining players (the 1 survivor)
         for sock in list(clients.keys()):

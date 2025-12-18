@@ -33,7 +33,6 @@ def broadcast(msg):
         try:
             client.send(msg.encode())
         except:
-            # If sending fails, assume disconnected
             pass
 
 def handle_client(conn, addr):
@@ -50,13 +49,17 @@ def handle_client(conn, addr):
             
             # State 1: Lobby (Not Started) -> Msg is Player Name
             if not current_quiz.started:
-                player_name = msg
+                player_name = msg.strip()
                 if current_quiz.add_player(player_name) == 0:
                     clients[conn] = player_name
                     print_to_box(main_console, f"{player_name} has joined.\n")
-                    broadcast(f"MSG:{player_name} joined the lobby.\n")
+                    broadcast(f"{player_name} joined the lobby.\n")
                 else:
-                    conn.send("MSG:Error: Name taken or invalid.\n".encode())
+                    # Name taken or invalid
+                    conn.send("Name unavailable. Please reconnect with a different name.\n".encode())
+                    # Close connection to force client reset
+                    conn.close()
+                    return # Exit thread
             
             # State 2: Game Started -> Msg is Answer (A/B/C)
             else:
@@ -64,21 +67,21 @@ def handle_client(conn, addr):
                     res = current_quiz.give_answer(player_name, msg)
                     if res == 0:
                         print_to_box(main_console, f"{player_name} answered {msg}.\n")
-                        conn.send("MSG:Answer received.\n".encode())
+                        conn.send("Answer received.\n".encode())
                         
                         # Check State Transition
                         if current_quiz.check_if_all_answered():
                             current_quiz.update_scores()
-                            broadcast(f"MSG:\n--- ROUND OVER ---\n{current_quiz.scoreboard_printable()}\n")
+                            broadcast(f"\n--- ROUND OVER ---\n{current_quiz.scoreboard_printable()}\n")
                             
                             # Next Question or End Game
                             if current_quiz.next_question() == 0:
                                 q_text = current_quiz.current_question_printable()
-                                broadcast(f"MSG:\nNEXT QUESTION:\n{q_text}\n")
+                                broadcast(f"\n{q_text}\n")
                             else:
-                                broadcast("MSG:\n--- GAME OVER ---\n")
+                                broadcast("\n--- GAME OVER ---\n")
                     else:
-                        conn.send("MSG:You already answered this round.\n".encode())
+                        conn.send("You already answered this round.\n".encode())
 
         except Exception as e:
             print(f"Error handling client {addr}: {e}")
@@ -87,13 +90,16 @@ def handle_client(conn, addr):
     # Cleanup
     if player_name:
         current_quiz.drop_player(player_name)
-        broadcast(f"MSG:{player_name} left the game.\n")
+        broadcast(f"{player_name} left the game.\n")
         print_to_box(main_console, f"{player_name} disconnected.\n")
     
     if conn in clients:
         del clients[conn]
     
-    conn.close()
+    try:
+        conn.close()
+    except:
+        pass
 
 def accept_clients():
     while True:
@@ -126,8 +132,8 @@ def start_button_func():
     
     # Broadcast start
     print_to_box(main_console, "Game Started!\n")
-    broadcast("MSG:\n--- GAME STARTED ---\n")
-    broadcast(f"MSG:{current_quiz.current_question_printable()}\n")
+    broadcast("\n--- GAME STARTED ---\n")
+    broadcast(f"{current_quiz.current_question_printable()}\n")
 
     start_button.configure(state = "disabled")
 
@@ -151,6 +157,7 @@ def host_button_func():
     
 
 root = Tk()
+root.title("Quiz Server")
 frame = ttk.Frame(root, padding=10)
 frame.grid(sticky="NSEW")
 

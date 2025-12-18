@@ -170,7 +170,7 @@ def handle_client(conn, addr):
         # prepare final scoreboard
         final_sb = current_quiz.scoreboard_printable()
         broadcast(f"\nNot enough players remaining. Game over.\nFINAL SCORES:\n{final_sb}\n")
-        print_to_box(main_console, f"Not enough players remaining. Game ended.\nFinal scoreboard:\n{final_sb}\n")
+        print_to_box(main_console, f"\nNot enough players remaining. Game ended.\nFinal scoreboard:\n{final_sb}\n")
         
         # disconnect any remaining players
         for sock in list(clients.keys()):
@@ -226,6 +226,7 @@ def start_button_func():
     q_text = current_quiz.current_question_printable()
     broadcast(q_text)
     print_to_box(main_console, q_text)
+    print_to_box(main_console, f"Answer: {current_quiz.answers[0]}\n")
 
     start_button.configure(state = "disabled") # update UI
 

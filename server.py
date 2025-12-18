@@ -142,7 +142,7 @@ def handle_client(conn, addr):
                         conn.send("You already answered this round.\n".encode())
                 else: # game already in progress, reject client
                     conn.send("Game already in progress. Connection refused.\n".encode())
-                    print_to_box(main_console, f"{name_attempt} tried to join while game was in progress, disconnecting client.\n")
+                    print_to_box(main_console, f"{addr} tried to join while game was in progress, disconnecting client.\n")
                     # close connection to force client reset
                     conn.close()
                     return

@@ -1,7 +1,0 @@
-add on closing functions to both client and server
-server listen to port
-server runs thread for each client, call api functions based on recieved packets
-on client disconnect functions
-client connect to server
-client send packets to server
-ui object states change based on internal state
